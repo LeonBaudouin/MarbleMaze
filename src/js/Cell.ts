@@ -2,18 +2,24 @@ import { Point } from './Point';
 import { Border } from './Border';
 import { Direction } from './DirectionEnum';
 import { Orientation } from './OrientationEnum';
+import { Surroundings } from './Surroundings';
 
 export class Cell {
+    
     position : Point;
-    surroundingCells : Cell[];
-    surroundingBorders : Border[];
+    surroundingCells : Surroundings<Cell>;
+    surroundingBorders : Surroundings<Border>;
+
+    isStart : boolean = false;
+    isEnd : boolean = false;
     isOpen : boolean = false;
+    isBacktracked : boolean = false;
 
     constructor(position : Point)
     {
         this.position = position;
-        this.surroundingCells = [null, null, null, null];
-        this.surroundingBorders = [null, null, null, null];
+        this.surroundingCells = new Surroundings<Cell>();
+        this.surroundingBorders = new Surroundings<Border>();
     }
 
 
@@ -23,7 +29,7 @@ export class Cell {
         heightUnit : number
     ) {
         let {x, y} = this.position;
-        ctx.fillStyle = this.isOpen ? 'grey' : 'transparent';
+        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
         ctx.fillRect(x * widthUnit, y * heightUnit, widthUnit, heightUnit);
     }
 
@@ -64,24 +70,12 @@ export class Cell {
         }
     }
 
-
-    public getSurroundingCell(direction : Direction)
-    {
-        return this.surroundingCells[direction];
-    }
-
-    public setSurroundingCells(cells : Cell[])
+    public setSurroundingCells(cells : Surroundings<Cell>)
     {
         this.surroundingCells = cells;
     }
 
-
-    public getSurroundingBorder(direction : Direction)
-    {
-        return this.surroundingBorders[direction];
-    }
-
-    public setSurroundingBorders(borders : Border[])
+    public setSurroundingBorders(borders : Surroundings<Border>)
     {
         this.surroundingBorders = borders;
     }

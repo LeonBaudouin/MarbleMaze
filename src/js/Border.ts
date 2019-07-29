@@ -6,7 +6,7 @@ export class Border {
     position : Point;
     orientation : Orientation;
     isWall : boolean;
-
+    isActive : boolean;
 
     constructor(
         position : Point,
@@ -16,6 +16,7 @@ export class Border {
         this.position = position;
         this.orientation = orientation;
         this.isWall = isWall;
+        this.isActive = true;
     }
 
 
@@ -30,7 +31,8 @@ export class Border {
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
-        ctx.strokeStyle = this.isWall ? 'red' : 'black';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = this.isWall ? 'red' : this.isActive ? 'black' : 'transparent';
         ctx.stroke();
     }
 

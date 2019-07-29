@@ -4,6 +4,7 @@ import { Point } from './Point';
 import { Orientation } from './OrientationEnum';
 import { Direction } from './DirectionEnum';
 import { Backtracker } from './Backtracker';
+import { Surroundings } from './Surroundings';
 
 export class Maze {
 
@@ -12,11 +13,13 @@ export class Maze {
     verticalBorders : Border[] = [];
     width : number;
     height : number;
+    pathSize : number;
 
-    constructor(width : number, height : number)
+    constructor(width : number, height : number, pathSize : number)
     {
         this.height = height;
         this.width = width;
+        this.pathSize = pathSize;
         this.InitGrid();
         this.BuildMaze();
     }
@@ -60,13 +63,13 @@ export class Maze {
     private FillCellsReferences()
     {
         this.cells.forEach(cell => {
-            let cells = new Array<Cell>(4);
+            let cells = new Surroundings<Cell>();
             cells[Direction.Up] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Up))[0];
             cells[Direction.Right] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Right))[0];
             cells[Direction.Down] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Down))[0];
             cells[Direction.Left] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Left))[0];
 
-            let borders = new Array<Border>(4);
+            let borders = new Surroundings<Border>();
             borders[Direction.Up] = this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Up))[0];
             borders[Direction.Right] = this.verticalBorders.filter(border => cell.isNextToBorder(border, Direction.Right))[0];
             borders[Direction.Down] = this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Down))[0];
@@ -81,8 +84,9 @@ export class Maze {
     {
         let randomIndex = Math.floor(Math.random() * this.cells.length);
         let randomCell = this.cells[randomIndex];
-        new Backtracker(randomCell);
         randomCell.isOpen = true;
+        randomCell.isStart = true;
+        let backtracker = new Backtracker(randomCell, this.pathSize);
     }
 
     public Draw(ctx : CanvasRenderingContext2D)
