@@ -9,7 +9,7 @@ function initMaze()
     canvas.height = canvas.clientHeight;
     window.addEventListener('resize', () => resize(canvas));
     const ctx = canvas.getContext('2d');
-    const maze = new Maze(50, 50, 1000);
+    const maze = new Maze(20, 20, 1000);
 
     Draw(maze, ctx);
 }

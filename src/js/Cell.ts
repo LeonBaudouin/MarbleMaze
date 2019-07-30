@@ -14,6 +14,7 @@ export class Cell {
     isEnd : boolean = false;
     isOpen : boolean = false;
     isBacktracked : boolean = false;
+    isRightPath : boolean = false;
 
     constructor(position : Point)
     {
@@ -29,7 +30,7 @@ export class Cell {
         heightUnit : number
     ) {
         let {x, y} = this.position;
-        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
+        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : this.isRightPath ? 'grey' : 'transparent';
         ctx.fillRect(x * widthUnit, y * heightUnit, widthUnit, heightUnit);
     }
 
