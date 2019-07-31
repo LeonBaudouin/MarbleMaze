@@ -24,12 +24,13 @@ export class Backtracker {
             if (!hasBacktracked) {
                 let mostFittingLengthDiff = Math.abs(this.mainPathLength - this.mostFittingPath.length);
                 let currentLengthDiff = Math.abs(this.mainPathLength - this.currentPath.length);
-                if (currentLengthDiff < mostFittingLengthDiff) {
+                if (currentLengthDiff < mostFittingLengthDiff || this.mostFittingPath.length === 0) {
                     this.mostFittingPath = [...this.currentPath];
                 }
             }
 
             if (currentCell.isStart) {
+                console.log(this.mostFittingPath.length);
                 this.mostFittingPath[this.mostFittingPath.length - 1].isEnd = true;
                 this.mostFittingPath.forEach(element => {
                     element.isRightPath = true;
@@ -42,6 +43,9 @@ export class Backtracker {
             
             if (backtrackCell === null) {
                 this.mostFittingPath[this.mostFittingPath.length - 1].isEnd = true;
+                this.mostFittingPath.forEach(element => {
+                    element.isRightPath = true;
+                });
                 return;
             }
 

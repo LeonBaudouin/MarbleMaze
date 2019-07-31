@@ -4,6 +4,7 @@ var source = require('vinyl-source-stream');
 var watchify = require('watchify');
 var tsify = require('tsify');
 var fancy_log = require('fancy-log');
+var webserver = require('gulp-webserver');
 var paths = {
     pages: ['src/*.html']
 };
@@ -21,6 +22,17 @@ gulp.task('copy-html', function () {
         .pipe(gulp.dest('dist'));
 });
 
+gulp.task('webserver', function() {
+    bundle();
+    gulp.src('/')
+        .pipe(webserver({
+            host: '0.0.0.0',
+            livereload: true,
+            directoryListing: true,
+            open: true
+        }));
+});
+
 function bundle() {
     return watchedBrowserify
         .bundle()
@@ -28,6 +40,6 @@ function bundle() {
         .pipe(gulp.dest('dist'));
 }
 
-gulp.task('default', gulp.series(gulp.parallel('copy-html'), bundle));
+gulp.task('default', gulp.series(gulp.parallel('copy-html', 'webserver'), bundle));
 watchedBrowserify.on('update', bundle);
 watchedBrowserify.on('log', fancy_log);
