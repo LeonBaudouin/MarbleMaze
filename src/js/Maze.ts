@@ -5,12 +5,15 @@ import { Orientation } from './OrientationEnum';
 import { Direction } from './DirectionEnum';
 import { Backtracker } from './Backtracker';
 import { Surroundings } from './Surroundings';
+import { IDrawable } from './IDrawable';
+import { Marble } from './Marble';
 
-export class Maze {
+export class Maze implements IDrawable {
 
     cells : Cell[] = [];
     horizontalBorders : Border[] = [];
     verticalBorders : Border[] = [];
+    marble : Marble = null;
     width : number;
     height : number;
     pathSize : number;
@@ -86,7 +89,9 @@ export class Maze {
         let randomCell = this.cells[randomIndex];
         randomCell.isOpen = true;
         randomCell.isStart = true;
-        let backtracker = new Backtracker(randomCell, this.pathSize);
+        let backtracker = new Backtracker;
+        let path = backtracker.CarveMaze(randomCell, this.pathSize);
+        this.marble = new Marble(path[0], 10);
     }
 
     public Draw(ctx : CanvasRenderingContext2D)
@@ -108,5 +113,7 @@ export class Maze {
         this.verticalBorders.forEach(border => {
             border.Draw(ctx, widthUnit, heightUnit);
         });
+
+        this.marble.Draw(ctx, widthUnit, heightUnit);
     }
 }

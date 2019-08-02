@@ -3,8 +3,9 @@ import { Border } from './Border';
 import { Direction } from './DirectionEnum';
 import { Orientation } from './OrientationEnum';
 import { Surroundings } from './Surroundings';
+import { IDrawable } from './IDrawable';
 
-export class Cell {
+export class Cell implements IDrawable {
     
     position : Point;
     surroundingCells : Surroundings<Cell>;

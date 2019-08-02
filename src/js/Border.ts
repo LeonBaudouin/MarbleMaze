@@ -1,7 +1,9 @@
 import { Orientation } from './OrientationEnum';
 import { Point } from './Point';
+import { IDrawable } from './IDrawable';
 
-export class Border {
+export class Border implements IDrawable
+{
 
     position : Point;
     orientation : Orientation;

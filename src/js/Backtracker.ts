@@ -3,17 +3,18 @@ import { Direction } from './DirectionEnum';
 
 export class Backtracker {
 
-    mainPathLength : number;
-    currentPath : Cell[] = [];
-    mostFittingPath : Cell[] = [];
-    
-    constructor(startingCell : Cell, mainPathLength : number)
+    private mainPathLength : number;
+    private currentPath : Cell[] = [];
+    private mostFittingPath : Cell[] = [];
+
+    public CarveMaze(startingCell : Cell, mainPathLength : number) : Cell[]
     {
         this.mainPathLength = mainPathLength;
-        this.NextCell(startingCell, false);
+        this.currentPath = [startingCell];
+        return this.NextCell(startingCell, false);
     }
 
-    public NextCell(currentCell : Cell, hasBacktracked : boolean) : void
+    private NextCell(currentCell : Cell, hasBacktracked : boolean) : Cell[]
     {
         let { surroundingCells, surroundingBorders } = currentCell;
 
@@ -30,23 +31,14 @@ export class Backtracker {
             }
 
             if (currentCell.isStart) {
-                console.log(this.mostFittingPath.length);
-                this.mostFittingPath[this.mostFittingPath.length - 1].isEnd = true;
-                this.mostFittingPath.forEach(element => {
-                    element.isRightPath = true;
-                });
-                return;
+                return this.EndBacktract();;
             }
 
             currentCell.isBacktracked = true;
             let backtrackCell = this.getBacktrackCell(currentCell);
             
             if (backtrackCell === null) {
-                this.mostFittingPath[this.mostFittingPath.length - 1].isEnd = true;
-                this.mostFittingPath.forEach(element => {
-                    element.isRightPath = true;
-                });
-                return;
+                return this.EndBacktract();
             }
 
             this.currentPath.pop();
@@ -67,7 +59,16 @@ export class Backtracker {
         return this.NextCell(newCell, false);
     }
 
-    public getAvailableDirections(cell : Cell) : Direction[]
+    private EndBacktract() : Cell[]
+    {
+        this.mostFittingPath[this.mostFittingPath.length - 1].isEnd = true;
+        this.mostFittingPath.forEach(element => {
+            element.isRightPath = true;
+        });
+        return [...this.mostFittingPath];
+    }
+
+    private getAvailableDirections(cell : Cell) : Direction[]
     {
         let availableDirections : Direction[] = [];
 
@@ -82,7 +83,7 @@ export class Backtracker {
         return availableDirections;
     }
 
-    public getBacktrackCell(cell : Cell) : Cell
+    private getBacktrackCell(cell : Cell) : Cell
     {
         let nextCell = null;
         cell.surroundingBorders.forEach(
