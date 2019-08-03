@@ -1,5 +1,5 @@
-import { Direction } from './DirectionEnum';
-import { Cell } from './Cell';
+import { Direction } from '../Enum/DirectionEnum';
+import { Cell } from '../Maze/Cell';
 
 export class Surroundings<T> {
     [Direction.Up] : T = null;

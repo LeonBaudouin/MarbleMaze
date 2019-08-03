@@ -1,8 +1,6 @@
 {
     "files": [
-        "src/js/main.ts",
-        "src/js/Maze.ts",
-        "src/js/Cell.ts"
+        "src/js/main.ts"
     ],
     "compilerOptions": {
         "noImplicitAny": true,

@@ -1,6 +1,6 @@
-import { Orientation } from './OrientationEnum';
-import { Point } from './Point';
-import { IDrawable } from './IDrawable';
+import { Orientation } from '../Enum/OrientationEnum';
+import { Point } from '../Utils/Point';
+import { IDrawable } from '../Interface/IDrawable';
 
 export class Border implements IDrawable
 {

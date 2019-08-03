@@ -1,9 +1,9 @@
-import { Point } from './Point';
+import { Point } from '../Utils/Point';
 import { Border } from './Border';
-import { Direction } from './DirectionEnum';
-import { Orientation } from './OrientationEnum';
-import { Surroundings } from './Surroundings';
-import { IDrawable } from './IDrawable';
+import { Direction } from '../Enum/DirectionEnum';
+import { Orientation } from '../Enum/OrientationEnum';
+import { Surroundings } from '../Utils/Surroundings';
+import { IDrawable } from '../Interface/IDrawable';
 
 export class Cell implements IDrawable {
     

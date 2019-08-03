@@ -1,5 +1,5 @@
 import { Cell } from './Cell';
-import { Direction } from './DirectionEnum';
+import { Direction } from '../Enum/DirectionEnum';
 
 export class Backtracker {
 

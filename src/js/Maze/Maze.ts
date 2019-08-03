@@ -1,15 +1,16 @@
 import { Cell } from './Cell';
 import { Border } from './Border';
-import { Point } from './Point';
-import { Orientation } from './OrientationEnum';
-import { Direction } from './DirectionEnum';
+import { Point } from '../Utils/Point';
+import { Orientation } from '../Enum/OrientationEnum';
+import { Direction } from '../Enum/DirectionEnum';
 import { Backtracker } from './Backtracker';
-import { Surroundings } from './Surroundings';
-import { IDrawable } from './IDrawable';
+import { Surroundings } from '../Utils/Surroundings';
+import { IDrawable } from '../Interface/IDrawable';
+import { IUpdatable } from '../Interface/IUpdatable';
 import { Marble } from './Marble';
 
-export class Maze implements IDrawable {
-
+export class Maze implements IDrawable, IUpdatable
+{   
     cells : Cell[] = [];
     horizontalBorders : Border[] = [];
     verticalBorders : Border[] = [];
@@ -91,17 +92,22 @@ export class Maze implements IDrawable {
         randomCell.isStart = true;
         let backtracker = new Backtracker;
         let path = backtracker.CarveMaze(randomCell, this.pathSize);
-        this.marble = new Marble(path[0], 10);
+        this.marble = new Marble(path[0], 0.5);
     }
-
-    public Draw(ctx : CanvasRenderingContext2D)
-    {
-        const canvasWidth = ctx.canvas.width;
-        const canvasHeight = ctx.canvas.height;
-
-        const widthUnit = canvasWidth / this.width;
-        const heightUnit = canvasHeight / this.height;
-
+    
+    public Update(
+        ctx : CanvasRenderingContext2D,
+        widthUnit : number,
+        heightUnit : number
+    ) : void {
+        this.marble.Update(ctx, widthUnit, heightUnit);
+    }
+    
+    public Draw(
+        ctx : CanvasRenderingContext2D,
+        widthUnit : number,
+        heightUnit : number
+    ) : void {
         this.cells.forEach(cell => {
             cell.Draw(ctx, widthUnit, heightUnit);
         });
