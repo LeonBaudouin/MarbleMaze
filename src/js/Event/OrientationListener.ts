@@ -1,17 +1,18 @@
 import { EventListener } from "./EventListener";
 import { IListenEvent } from "../Interface/IListenEvent";
+import { DeviceOrientation } from "../Utils/DeviceOrientation";
 
-export class DeviceOrientationListener extends EventListener {
+export class OrientationListener extends EventListener {
 
-    protected static instance : DeviceOrientationListener;
-    protected static value : number = 0;
+    protected static instance : OrientationListener;
+    protected static value : DeviceOrientation = {alpha: 0, beta: 0, gamma: 0};
 
-    public static getInstance()  : IListenEvent
+    public static getInstance()  : OrientationListener
     {    
-        if(DeviceOrientationListener.instance == null)
-            DeviceOrientationListener.instance = new DeviceOrientationListener()
+        if(OrientationListener.instance == null)
+            OrientationListener.instance = new OrientationListener()
 
-        return DeviceOrientationListener.instance;
+        return OrientationListener.instance;
     }
 
     private constructor()
@@ -19,14 +20,14 @@ export class DeviceOrientationListener extends EventListener {
         super("deviceorientation");
     }
 
-    public getValue()
+    public getValue() : DeviceOrientation
     {
-        return DeviceOrientationListener.value;
+        return OrientationListener.value;
     }
 
-    public UpdateValue(e : DeviceOrientationEvent)
+    protected UpdateValue(e : DeviceOrientationEvent)
     {
-        DeviceOrientationListener.value = e.alpha;
+        OrientationListener.value = e;
     }
 
 }

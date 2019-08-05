@@ -25,12 +25,13 @@ function resize(canvas: HTMLCanvasElement)
 
 function Cycle(maze : Maze, ctx : CanvasRenderingContext2D)
 {
-    const canvasWidth = ctx.canvas.width;
-    const canvasHeight = ctx.canvas.height;
+    const { width, height }  = ctx.canvas;
 
-    const widthUnit = canvasWidth / MAZE_WIDTH;
-    const heightUnit = canvasHeight / MAZE_HEIGHT;
+    const widthUnit = width / MAZE_WIDTH;
+    const heightUnit = height / MAZE_HEIGHT;
     
+    ctx.clearRect(0, 0, width, height);
+    maze.Update(ctx, widthUnit, heightUnit);
     maze.Draw(ctx, widthUnit, heightUnit);
     requestAnimationFrame(() => Cycle(maze, ctx))
 }
