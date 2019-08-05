@@ -10,8 +10,7 @@ export class Marble implements IDrawable, IUpdatable
 {
 
     private listener : OrientationListener;
-    private startingCell : Cell;
-    private currentCells : Cell[];
+    private currentCell : Cell;
     private acceleration : Point = null;
     private velocity : Point = null;
     public pixelPosition : Point = null;
@@ -19,8 +18,8 @@ export class Marble implements IDrawable, IUpdatable
 
     constructor(startingCell : Cell, size : number) {
         this.size = size;
-        this.startingCell = startingCell;
-        this.currentCells = [startingCell];
+        this.currentCell = startingCell;
+        this.currentCell.isActive = true;
         this.acceleration = new Point(0, 0);
         this.velocity = new Point(0, 0);
         this.listener = OrientationListener.getInstance();
@@ -33,8 +32,8 @@ export class Marble implements IDrawable, IUpdatable
     ) : void {
 
         if (this.pixelPosition === null) {
-            const x = (this.startingCell.position.x + 0.5) * widthUnit;
-            const y = (this.startingCell.position.y + 0.5) * heightUnit;
+            const x = (this.currentCell.position.x + 0.5) * widthUnit;
+            const y = (this.currentCell.position.y + 0.5) * heightUnit;
             this.pixelPosition = new Point(x, y);
         }
 
@@ -42,6 +41,7 @@ export class Marble implements IDrawable, IUpdatable
         this.UpdateVelocity();
         this.UpdatePosition();
         this.Collision(widthUnit, heightUnit);
+        this.ChangeCurrentCell(widthUnit, heightUnit);
     }
 
     private UpdateVelocity() : void
@@ -56,89 +56,107 @@ export class Marble implements IDrawable, IUpdatable
 
     private Collision(widthUnit : number, heightUnit : number) : void
     {
-        this.currentCells.forEach( cell => {
-            cell.surroundingBorders.forEach( border => {
+        const {surroundingBorders, surroundingCells} = this.currentCell;
+
+        surroundingBorders.forEach( border => {
+            if (border != null && border.isActive) {
                 this.CollisionBorder(border, widthUnit, heightUnit);
-            });
+            }
+        });
+
+        surroundingCells.forEach( cell => {
+            if (cell != null) {
+                cell.surroundingBorders.forEach( border => {
+                    if (border != null && border.isActive) {
+                        this.CollisionBorder(border, widthUnit, heightUnit);
+                    }
+                });
+            }
         });
     }
 
     private CollisionBorder(border : Border, widthUnit : number, heightUnit : number) : void
     {
-        const nearestPoint = this.getNearestPoint(border, widthUnit, heightUnit);
-        
-        let smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
+        const smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
+        const radius = this.size * smallestUnit / 2;
 
-        if (this.pixelPosition.getDistance(nearestPoint) < this.size * smallestUnit / 2) {
-            this.setVectorsFromCollision(border, nearestPoint, widthUnit, heightUnit);
-        }
-    }
-    
-    private setVectorsFromCollision(
-        border : Border, 
-        collisionPoint : Point, 
-        widthUnit : number, 
-        heightUnit : number
-    ) : void {
-        
         const { x: vx, y: vy } = this.velocity;
         const { x: ax, y: ay } = this.acceleration;
 
-        if (
-            collisionPoint.equal(border.getStartPoint(widthUnit, heightUnit))
-         || collisionPoint.equal(border.getEndPoint(widthUnit, heightUnit))   
+        const startPoint = border.getStartPoint(widthUnit, heightUnit);
+        const endPoint = border.getEndPoint(widthUnit, heightUnit);
+
+        // Collision avec une extrémité
+        if (this.pixelPosition.getDistance(startPoint) <= radius
+         || this.pixelPosition.getDistance(endPoint) <= radius
         ) {
             this.pixelPosition = this.pixelPosition.substract(this.velocity);
-            this.velocity = new Point(- vy * 0.5, - vx * 0.5); 
-            this.acceleration = new Point(- ay * 0.5, - ax * 0.5); 
+            this.velocity = new Point(- vx * 0.5, - vy * 0.5);
+            this.acceleration = new Point(- ax * 0.5, - ay * 0.5);
             return;
         }
 
-        if (border.orientation == Orientation.Horizontal)
-        {
-            this.pixelPosition = this.pixelPosition.substract(this.velocity);
-            this.velocity = new Point(- vy * 0.5, vx * 0.5);
-            this.acceleration = new Point(- ay * 0.5, ax * 0.5);
+        // Collision avec une bordure horizontale
+        if (border.orientation == Orientation.Horizontal
+            && this.pixelPosition.x >= startPoint.x
+            && this.pixelPosition.x <= endPoint.x) {
+            
+            // Si le centre est au dessus de la bordure mais que le cercle lui est sécant
+            if (this.pixelPosition.y <= startPoint.y
+             && this.pixelPosition.y + radius >= startPoint.y) {
+                 this.pixelPosition.y = startPoint.y - radius;
+                 this.velocity.y = - vy * 0.5;
+                 this.acceleration.y = - ay * 0.5;
+            }
+
+            // Si le centre est en dessous de la bordure mais que le cercle lui est sécant
+            if (this.pixelPosition.y >= startPoint.y
+             && this.pixelPosition.y - radius <= startPoint.y ) {
+                this.pixelPosition.y = startPoint.y + radius;
+                this.velocity.y = - vy * 0.5;
+                this.acceleration.y = - ay * 0.5;
+            }
             return;
         }
+        
+        // Collision avec une bordure verticale
+        if (border.orientation == Orientation.Vertical
+            && this.pixelPosition.y >= startPoint.y
+            && this.pixelPosition.y <= endPoint.y) {
+    
+            // Si le centre est à gauche de la bordure mais que le cercle lui est sécant
+            if (this.pixelPosition.x <= startPoint.x
+             && this.pixelPosition.x + radius >= startPoint.x) {
+                    this.pixelPosition.x = startPoint.x - radius;
+                    this.velocity.x = - vx * 0.5;
+                    this.acceleration.x = - ax * 0.5;
+            }
 
-        if (border.orientation == Orientation.Vertical)
-        {
-            this.pixelPosition = this.pixelPosition.substract(this.velocity);
-            this.velocity = new Point(vy * 0.5, - vx * 0.5);
-            this.acceleration = new Point(ay * 0.5, - ax * 0.5);
+            // Si le centre est à droite de la bordure mais que le cercle lui est sécant
+            if (this.pixelPosition.x >= startPoint.x
+             && this.pixelPosition.x - radius <= startPoint.x ) {
+                this.pixelPosition.x = startPoint.x + radius;
+                this.velocity.x = - vx * 0.5;
+                this.acceleration.x = - ax * 0.5;
+            }
             return;
         }
     }
 
-    private getNearestPoint(border : Border, widthUnit : number, heightUnit : number) : Point
+    private ChangeCurrentCell(widthUnit : number, heightUnit : number) : void
     {
-        const startPoint = border.getStartPoint(widthUnit, heightUnit);
-        const endPoint = border.getEndPoint(widthUnit, heightUnit);
-    
-        // calc delta distance: source point to line start
-        const delta = this.pixelPosition.substract(startPoint);
-        
-        // calc delta distance: line start to end
-        const line = endPoint.substract(startPoint);
-
-        // Calc position on line normalized between 0.00 & 1.00
-        // == dot product divided by delta line distances squared
-        const t = (delta.x * line.x + delta.y * line.y) / (line.x * line.x + line.y * line.y);
-
-        // calc nearest pt on line
-        const x = startPoint.x + line.x * t;
-        const y = startPoint.y + line.y * t;
-
-        // clamp results to being on the segment
-        if ( t < 0 ) {
-            return startPoint.clone();
-        }
-        if ( t > 1 ) {
-            return endPoint.clone();
-        }
-
-        return(new Point(x, y));
+        this.currentCell.surroundingCells.forEach(cell => {
+            if (cell != null
+             && this.pixelPosition.x <= (cell.position.x + 1) * widthUnit
+             && this.pixelPosition.x >= cell.position.x * widthUnit
+             && this.pixelPosition.y <= (cell.position.y + 1) * heightUnit
+             && this.pixelPosition.y >= cell.position.y * heightUnit
+             ) {
+                 this.currentCell.isActive = false;
+                 this.currentCell = cell;
+                 this.currentCell.isActive = true;
+            }
+        })
     }
 
     private ProcessInput() : void
@@ -158,7 +176,7 @@ export class Marble implements IDrawable, IUpdatable
         ctx : CanvasRenderingContext2D,
         widthUnit : number,
         heightUnit : number
-    ) {
+    ) : void {
         let {x, y} = this.pixelPosition;
         let smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
         ctx.beginPath();

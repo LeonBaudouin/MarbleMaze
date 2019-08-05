@@ -8,7 +8,7 @@ export class Border implements IDrawable
     position : Point;
     orientation : Orientation;
     isWall : boolean;
-    isActive : boolean;
+    isActive : boolean = true;
 
     constructor(
         position : Point,
@@ -18,7 +18,6 @@ export class Border implements IDrawable
         this.position = position;
         this.orientation = orientation;
         this.isWall = isWall;
-        this.isActive = true;
     }
 
 

@@ -2,8 +2,8 @@ import { Maze } from "./Maze/Maze";
 
 window.addEventListener('load', initMaze);
 
-const MAZE_WIDTH = 20;
-const MAZE_HEIGHT = 20;
+const MAZE_WIDTH = 10;
+const MAZE_HEIGHT = 10;
 
 function initMaze()
 {
