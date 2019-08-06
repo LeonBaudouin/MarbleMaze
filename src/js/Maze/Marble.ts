@@ -19,7 +19,6 @@ export class Marble implements IDrawable, IUpdatable
     constructor(startingCell : Cell, size : number) {
         this.size = size;
         this.currentCell = startingCell;
-        this.currentCell.isActive = true;
         this.acceleration = new Point(0, 0);
         this.velocity = new Point(0, 0);
         this.listener = OrientationListener.getInstance();
@@ -86,13 +85,17 @@ export class Marble implements IDrawable, IUpdatable
         const startPoint = border.getStartPoint(widthUnit, heightUnit);
         const endPoint = border.getEndPoint(widthUnit, heightUnit);
 
-        // Collision avec une extrémité
-        if (this.pixelPosition.getDistance(startPoint) <= radius
-         || this.pixelPosition.getDistance(endPoint) <= radius
-        ) {
-            this.pixelPosition = this.pixelPosition.substract(this.velocity);
-            this.velocity = new Point(- vx * 0.5, - vy * 0.5);
-            this.acceleration = new Point(- ax * 0.5, - ay * 0.5);
+        // Collision avec le début de la bordure
+        if (this.pixelPosition.getDistance(startPoint) <= radius) {
+            const angle = this.pixelPosition.getAngle(startPoint);
+            this.pixelPosition = startPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
+            return;
+        }
+
+        // Collision avec la fin de la bordure
+        if (this.pixelPosition.getDistance(endPoint) <= radius) {
+            const angle = this.pixelPosition.getAngle(endPoint);
+            this.pixelPosition = endPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
             return;
         }
 
@@ -107,6 +110,7 @@ export class Marble implements IDrawable, IUpdatable
                  this.pixelPosition.y = startPoint.y - radius;
                  this.velocity.y = - vy * 0.5;
                  this.acceleration.y = - ay * 0.5;
+                 return;
             }
 
             // Si le centre est en dessous de la bordure mais que le cercle lui est sécant
@@ -115,8 +119,8 @@ export class Marble implements IDrawable, IUpdatable
                 this.pixelPosition.y = startPoint.y + radius;
                 this.velocity.y = - vy * 0.5;
                 this.acceleration.y = - ay * 0.5;
+                return;
             }
-            return;
         }
         
         // Collision avec une bordure verticale
@@ -127,9 +131,10 @@ export class Marble implements IDrawable, IUpdatable
             // Si le centre est à gauche de la bordure mais que le cercle lui est sécant
             if (this.pixelPosition.x <= startPoint.x
              && this.pixelPosition.x + radius >= startPoint.x) {
-                    this.pixelPosition.x = startPoint.x - radius;
-                    this.velocity.x = - vx * 0.5;
-                    this.acceleration.x = - ax * 0.5;
+                this.pixelPosition.x = startPoint.x - radius;
+                this.velocity.x = - vx * 0.5;
+                this.acceleration.x = - ax * 0.5;
+                return;
             }
 
             // Si le centre est à droite de la bordure mais que le cercle lui est sécant
@@ -138,8 +143,8 @@ export class Marble implements IDrawable, IUpdatable
                 this.pixelPosition.x = startPoint.x + radius;
                 this.velocity.x = - vx * 0.5;
                 this.acceleration.x = - ax * 0.5;
+                return;
             }
-            return;
         }
     }
 
@@ -152,9 +157,7 @@ export class Marble implements IDrawable, IUpdatable
              && this.pixelPosition.y <= (cell.position.y + 1) * heightUnit
              && this.pixelPosition.y >= cell.position.y * heightUnit
              ) {
-                 this.currentCell.isActive = false;
                  this.currentCell = cell;
-                 this.currentCell.isActive = true;
             }
         })
     }
@@ -181,6 +184,7 @@ export class Marble implements IDrawable, IUpdatable
         let smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
         ctx.beginPath();
         ctx.arc(x, y, this.size * smallestUnit / 2, 0, 2 * Math.PI);
-        ctx.stroke();
+        ctx.fillStyle = 'blue';
+        ctx.fill();
     }
 }

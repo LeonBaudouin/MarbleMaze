@@ -20,6 +20,12 @@ export class Point {
         return Math.sqrt( a*a + b*b );
     }
 
+    getAngle(otherPoint : Point, inDegree : boolean = false) : number
+    {
+        const angle = Math.atan2(otherPoint.y - this.y, otherPoint.x - this.x);
+        return inDegree ? angle * 180 / Math.PI : angle;
+    }
+
     add(otherPoint : Point) : Point
     {
         const x = this.x + otherPoint.x;
@@ -43,5 +49,4 @@ export class Point {
     {
         return this.x == otherPoint.x && this.y == otherPoint.y;
     }
-
 }
