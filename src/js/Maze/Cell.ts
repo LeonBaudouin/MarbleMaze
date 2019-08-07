@@ -16,6 +16,7 @@ export class Cell implements IDrawable {
     isOpen : boolean = false;
     isBacktracked : boolean = false;
     isRightPath : boolean = false;
+    isActive : boolean = false;
 
     constructor(position : Point)
     {
@@ -31,7 +32,7 @@ export class Cell implements IDrawable {
         heightUnit : number
     ) {
         let {x, y} = this.position;
-        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
+        ctx.fillStyle = this.isActive ? 'yellow' : this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
         ctx.fillRect(x * widthUnit, y * heightUnit, widthUnit, heightUnit);
     }
 

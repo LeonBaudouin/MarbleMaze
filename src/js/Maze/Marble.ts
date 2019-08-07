@@ -57,24 +57,30 @@ export class Marble implements IDrawable, IUpdatable
     {
         const {surroundingBorders, surroundingCells} = this.currentCell;
 
+        const bordersToCheck : Border[] = []; 
+
         surroundingBorders.forEach( border => {
-            if (border != null && border.isActive) {
-                this.CollisionBorder(border, widthUnit, heightUnit);
+            if (border != null && border.isActive && bordersToCheck.indexOf(border) === -1) {
+                bordersToCheck.push(border);
             }
         });
 
         surroundingCells.forEach( cell => {
             if (cell != null) {
                 cell.surroundingBorders.forEach( border => {
-                    if (border != null && border.isActive) {
-                        this.CollisionBorder(border, widthUnit, heightUnit);
+                    if (border != null && border.isActive && bordersToCheck.indexOf(border) === -1) {
+                        bordersToCheck.push(border);
                     }
                 });
             }
         });
+        
+        for (const border of bordersToCheck) {
+            this.CollisionBorder(border, widthUnit, heightUnit);            
+        }
     }
 
-    private CollisionBorder(border : Border, widthUnit : number, heightUnit : number) : void
+    private CollisionBorder(border : Border, widthUnit : number, heightUnit : number) : boolean
     {
         const smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
         const radius = this.size * smallestUnit / 2;
@@ -84,20 +90,6 @@ export class Marble implements IDrawable, IUpdatable
 
         const startPoint = border.getStartPoint(widthUnit, heightUnit);
         const endPoint = border.getEndPoint(widthUnit, heightUnit);
-
-        // Collision avec le début de la bordure
-        if (this.pixelPosition.getDistance(startPoint) <= radius) {
-            const angle = this.pixelPosition.getAngle(startPoint);
-            this.pixelPosition = startPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
-            return;
-        }
-
-        // Collision avec la fin de la bordure
-        if (this.pixelPosition.getDistance(endPoint) <= radius) {
-            const angle = this.pixelPosition.getAngle(endPoint);
-            this.pixelPosition = endPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
-            return;
-        }
 
         // Collision avec une bordure horizontale
         if (border.orientation == Orientation.Horizontal
@@ -146,6 +138,20 @@ export class Marble implements IDrawable, IUpdatable
                 return;
             }
         }
+
+        // Collision avec le début de la bordure
+        if (this.pixelPosition.getDistance(startPoint) <= radius) {
+            const angle = this.pixelPosition.getAngle(startPoint);
+            this.pixelPosition = startPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
+            return;
+        }
+
+        // Collision avec la fin de la bordure
+        if (this.pixelPosition.getDistance(endPoint) <= radius) {
+            const angle = this.pixelPosition.getAngle(endPoint);
+            this.pixelPosition = endPoint.substract(new Point(Math.cos(angle) * radius, Math.sin(angle) * radius));
+            return;
+        }
     }
 
     private ChangeCurrentCell(widthUnit : number, heightUnit : number) : void
@@ -157,7 +163,9 @@ export class Marble implements IDrawable, IUpdatable
              && this.pixelPosition.y <= (cell.position.y + 1) * heightUnit
              && this.pixelPosition.y >= cell.position.y * heightUnit
              ) {
+                 this.currentCell.isActive = false;
                  this.currentCell = cell;
+                 this.currentCell.isActive = true;
             }
         })
     }
