@@ -48,7 +48,19 @@ export class Marble implements IDrawable, IUpdatable
 
     private UpdateVelocity() : void
     {
-        this.velocity = this.velocity.add(this.acceleration)
+        let newVelocity = this.velocity.add(this.acceleration);
+        let normalVelocity = new Point(0, 0);
+
+        if (this.collisionAngle != null) {
+            const diffAngle = this.collisionAngle - (new Point(0,0)).getAngle(newVelocity);
+            const ponderedDiffAngle = diffAngle > Math.PI ? diffAngle - Math.PI * 2 : diffAngle < - Math.PI ? diffAngle + Math.PI * 2 : diffAngle;
+            if (Math.abs(ponderedDiffAngle) < Math.PI / 2) {
+                const normalVelocityMagnitude = newVelocity.getMagnitude() * Math.cos(diffAngle);
+                normalVelocity = Point.CreateFromPolar(this.collisionAngle, normalVelocityMagnitude);
+            }
+        }
+
+        this.velocity = newVelocity.substract(normalVelocity);
     }
 
     private UpdatePosition() : void
@@ -129,7 +141,7 @@ export class Marble implements IDrawable, IUpdatable
                  && this.pixelPosition.y + radius >= startPoint.y) {
                     this.pixelPosition.y = startPoint.y - radius;
                     this.velocity.y = - vy * 0.5;
-                    return - Math.PI / 2;
+                    return Math.PI / 2;
                 }
 
                 // Si le centre est en dessous de la bordure mais que le cercle lui est sécant
@@ -137,27 +149,27 @@ export class Marble implements IDrawable, IUpdatable
                  && this.pixelPosition.y - radius <= startPoint.y ) {
                     this.pixelPosition.y = startPoint.y + radius;
                     this.velocity.y = - vy * 0.5;
-                    return Math.PI / 2;
+                    return - Math.PI / 2;
                 }
             }
 
-            if (endPoint.getDistance(this.pixelPosition) <= radius) {
+            if (endPoint.getDistance(this.pixelPosition) <= radius + 0.0001) {
                 const rightBorder = border.surroundingBorders.get(Direction.Right);
                 const angle = endPoint.getAngle(this.pixelPosition);
                 if (angle > - Math.PI / 2 && angle < Math.PI / 2
                  && (rightBorder == null || !rightBorder.isActive)) {
                     this.onCollideOnPoint(endPoint, radius);
-                    return angle;
+                    return angle + Math.PI;
                 }
             }
 
-            if (startPoint.getDistance(this.pixelPosition) <= radius) {
+            if (startPoint.getDistance(this.pixelPosition) <= radius + 0.0001) {
                 const leftBorder = border.surroundingBorders.get(Direction.Left);
                 const angle = startPoint.getAngle(this.pixelPosition);
                 if (((angle < - Math.PI / 2 && angle > - Math.PI) || (angle < Math.PI && angle > Math.PI / 2))
                  && (leftBorder == null || !leftBorder.isActive)) {
                     this.onCollideOnPoint(startPoint, radius);
-                    return angle;
+                    return angle + Math.PI;
                 }
             }
         }
@@ -184,23 +196,23 @@ export class Marble implements IDrawable, IUpdatable
                 }
             }
 
-            if (endPoint.getDistance(this.pixelPosition) <= radius) {
+            if (endPoint.getDistance(this.pixelPosition) <= radius + 0.0001) {
                 const downBorder = border.surroundingBorders.get(Direction.Down);
                 const angle = endPoint.getAngle(this.pixelPosition);
                 if (angle > 0 && angle < Math.PI
                  && (downBorder == null || !downBorder.isActive)) {
                     this.onCollideOnPoint(endPoint, radius);
-                    return angle;
+                    return angle + Math.PI;
                 }
             }
 
-            if (startPoint.getDistance(this.pixelPosition) <= radius) {
+            if (startPoint.getDistance(this.pixelPosition) <= radius + 0.0001) {
                 const upBorder = border.surroundingBorders.get(Direction.Up);
                 const angle = startPoint.getAngle(this.pixelPosition);
                 if (angle < 0 && angle > - Math.PI
                  && (upBorder == null || !upBorder.isActive)) {
                     this.onCollideOnPoint(startPoint, radius);
-                    return angle;
+                    return angle + Math.PI;
                 }
             }
         }
@@ -213,8 +225,8 @@ export class Marble implements IDrawable, IUpdatable
         const incidenceAngle = this.acceleration.getAngle(new Point(0, 0));
         
         const wallNormalAngle = point.getAngle(this.pixelPosition);
-        const differenceAngle = incidenceAngle - wallNormalAngle;
-        const reflectionAngle = incidenceAngle - 2 * differenceAngle;
+        const differenceAngle = wallNormalAngle - incidenceAngle;
+        const reflectionAngle = incidenceAngle + 2 * differenceAngle;
 
         this.pixelPosition = point.add(Point.CreateFromPolar(wallNormalAngle, radius));
         this.velocity = Point.CreateFromPolar(reflectionAngle, this.velocity.getMagnitude() / 2);
@@ -246,44 +258,12 @@ export class Marble implements IDrawable, IUpdatable
 
         let { x, y } = this.mouse.getValue();
 
+        
+
         x = (x - this.pixelPosition.x) / 600;
         y = (y - this.pixelPosition.y) / 600;
 
-        let newAcceleration = new Point(x, y);
-        let normalForce = new Point(0, 0);
-        if (this.collisionAngle != null) {
-
-            // normalForce = Point.CreateFromPolar(this.collisionAngle, 1);
-
-            // let factor = (newAcceleration.x * normalForce.x + newAcceleration.y * normalForce.y)/(normalForce.getMagnitude() * normalForce.getMagnitude())
-            // normalForce = new Point(normalForce.x * factor, normalForce.y *factor);
-            
-            const diffAngle = Math.abs(this.collisionAngle - (new Point(0,0)).getAngle(newAcceleration));
-            console.log(Math.floor(this.collisionAngle * 100)/100, Math.floor((new Point(0,0)).getAngle(newAcceleration) * 100)/100 )
-            const normalForceMagnitude = newAcceleration.getMagnitude() * Math.cos(diffAngle);
-            normalForce = Point.CreateFromPolar(this.collisionAngle, normalForceMagnitude);
-        }
-        
-        const {ctx, width, height} = Context.getInstance().getContextDTO();
-        const center = new Point(width/2, height/2);
-
-
-
-        this.acceleration = newAcceleration.substract(normalForce);
-        ctx.beginPath();
-        ctx.arc(center.x + (this.acceleration.x * 100), center.y + (this.acceleration.y * 100), 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(center.x + (normalForce.x * 100), center.y + (normalForce.y * 100), 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(center.x + (newAcceleration.x * 100), center.y + (newAcceleration.y * 100), 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'green';
-        ctx.fill();
+        this.acceleration = new Point(x, y);
     }
 
     public Draw(context : Context) : void
