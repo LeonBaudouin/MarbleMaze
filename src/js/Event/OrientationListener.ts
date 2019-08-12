@@ -1,5 +1,4 @@
 import { EventListener } from "./EventListener";
-import { IListenEvent } from "../Interface/IListenEvent";
 import { DeviceOrientation } from "../Utils/DeviceOrientation";
 
 export class OrientationListener extends EventListener {

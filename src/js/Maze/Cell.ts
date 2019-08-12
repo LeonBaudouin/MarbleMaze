@@ -4,6 +4,7 @@ import { Direction } from '../Enum/DirectionEnum';
 import { Orientation } from '../Enum/OrientationEnum';
 import { Surroundings } from '../Utils/Surroundings';
 import { IDrawable } from '../Interface/IDrawable';
+import { Context } from '../Utils/Context';
 
 export class Cell implements IDrawable {
     
@@ -16,7 +17,6 @@ export class Cell implements IDrawable {
     isOpen : boolean = false;
     isBacktracked : boolean = false;
     isRightPath : boolean = false;
-    isActive : boolean = false;
 
     constructor(position : Point)
     {
@@ -26,13 +26,11 @@ export class Cell implements IDrawable {
     }
 
 
-    public Draw(
-        ctx : CanvasRenderingContext2D,
-        widthUnit : number,
-        heightUnit : number
-    ) {
-        let {x, y} = this.position;
-        ctx.fillStyle = this.isActive ? 'yellow' : this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
+    public Draw(context : Context)
+    {
+        const {ctx, widthUnit, heightUnit} = context.getContextDTO();
+        const {x, y} = this.position;
+        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
         ctx.fillRect(x * widthUnit, y * heightUnit, widthUnit, heightUnit);
     }
 

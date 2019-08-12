@@ -1,4 +1,6 @@
+import { Context } from "../Utils/Context";
+
 export interface IDrawable
 {
-    Draw(ctx : CanvasRenderingContext2D, widthUnit : number, heightUnit : number) : void;
+    Draw(context : Context) : void;
 }

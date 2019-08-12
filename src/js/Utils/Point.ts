@@ -20,6 +20,11 @@ export class Point {
         return Math.sqrt( a*a + b*b );
     }
 
+    getMagnitude()
+    {
+        return this.getDistance(new Point(0, 0));
+    }
+
     getAngle(otherPoint : Point, inDegree : boolean = false) : number
     {
         const angle = Math.atan2(otherPoint.y - this.y, otherPoint.x - this.x);
@@ -48,5 +53,12 @@ export class Point {
     equal(otherPoint : Point) : boolean
     {
         return this.x == otherPoint.x && this.y == otherPoint.y;
+    }
+
+    static CreateFromPolar(angle : number, distance : number)
+    {
+        const x = distance * Math.cos(angle);
+        const y = distance * Math.sin(angle);
+        return new Point(x, y);
     }
 }

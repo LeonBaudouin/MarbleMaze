@@ -8,6 +8,7 @@ import { Surroundings } from '../Utils/Surroundings';
 import { IDrawable } from '../Interface/IDrawable';
 import { IUpdatable } from '../Interface/IUpdatable';
 import { Marble } from './Marble';
+import { Context } from '../Utils/Context';
 
 export class Maze implements IDrawable, IUpdatable
 {   
@@ -18,6 +19,7 @@ export class Maze implements IDrawable, IUpdatable
     width : number;
     height : number;
     pathSize : number;
+    context : Context;
 
     constructor(width : number, height : number, pathSize : number)
     {
@@ -32,7 +34,9 @@ export class Maze implements IDrawable, IUpdatable
     {
         this.FillCells();
         this.FillBorders();
+
         this.FillCellsReferences();
+        this.FillBordersReferences();
     }
 
     private FillCells()
@@ -68,19 +72,54 @@ export class Maze implements IDrawable, IUpdatable
     {
         this.cells.forEach(cell => {
             let cells = new Surroundings<Cell>();
-            cells[Direction.Up] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Up))[0];
-            cells[Direction.Right] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Right))[0];
-            cells[Direction.Down] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Down))[0];
-            cells[Direction.Left] = this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Left))[0];
+            cells.set(this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Up))[0], Direction.Up);
+            cells.set(this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Right))[0], Direction.Right);
+            cells.set(this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Down))[0], Direction.Down);
+            cells.set(this.cells.filter(otherCell => cell.isNextToCell(otherCell, Direction.Left))[0], Direction.Left);
 
             let borders = new Surroundings<Border>();
-            borders[Direction.Up] = this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Up))[0];
-            borders[Direction.Right] = this.verticalBorders.filter(border => cell.isNextToBorder(border, Direction.Right))[0];
-            borders[Direction.Down] = this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Down))[0];
-            borders[Direction.Left] = this.verticalBorders.filter(border => cell.isNextToBorder(border, Direction.Left))[0];
+            borders.set(this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Up))[0], Direction.Up);
+            borders.set(this.verticalBorders.filter(border => cell.isNextToBorder(border, Direction.Right))[0], Direction.Right);
+            borders.set(this.horizontalBorders.filter(border => cell.isNextToBorder(border, Direction.Down))[0], Direction.Down);
+            borders.set(this.verticalBorders.filter(border => cell.isNextToBorder(border, Direction.Left))[0], Direction.Left);
 
             cell.setSurroundingCells(cells);
             cell.setSurroundingBorders(borders);
+        });
+    }
+
+    private FillBordersReferences()
+    {
+        this.horizontalBorders.forEach((border, i) => {
+            const surroundingBorders = new Surroundings<Border>();
+            // Extrémité gauche
+            const leftIndex = i - this.height + 1;
+            if (leftIndex >= 0) {
+                surroundingBorders.set(this.horizontalBorders[leftIndex], Direction.Left);
+            }
+            
+            // Extrémité droite
+            const rightIndex = i + this.height + 1;
+            if (rightIndex < this.horizontalBorders.length) {
+                surroundingBorders.set(this.horizontalBorders[rightIndex], Direction.Right);
+            }
+
+            border.surroundingBorders = surroundingBorders;
+        });
+
+        this.verticalBorders.forEach((border, i) => {
+            const surroundingBorders = new Surroundings<Border>();
+            // Extrémité haute
+            if (i % this.height != 0) {
+                surroundingBorders.set(this.verticalBorders[i - 1], Direction.Up);
+            }
+            
+            // Extrémité basse
+            if (i % this.height != this.height - 1) {
+                surroundingBorders.set(this.verticalBorders[i + 1], Direction.Down);
+            }
+
+            border.surroundingBorders = surroundingBorders;
         });
     }
 
@@ -95,31 +134,25 @@ export class Maze implements IDrawable, IUpdatable
         this.marble = new Marble(path[0], 0.5);
     }
     
-    public Update(
-        ctx : CanvasRenderingContext2D,
-        widthUnit : number,
-        heightUnit : number
-    ) : void {
-        this.marble.Update(ctx, widthUnit, heightUnit);
+    public Update(context : Context) : void
+    {
+        this.marble.Update(context);
     }
     
-    public Draw(
-        ctx : CanvasRenderingContext2D,
-        widthUnit : number,
-        heightUnit : number
-    ) : void {
+    public Draw(context : Context) : void
+    {
         this.cells.forEach(cell => {
-            cell.Draw(ctx, widthUnit, heightUnit);
+            cell.Draw(context);
         });
 
         this.horizontalBorders.forEach(border => {
-            border.Draw(ctx, widthUnit, heightUnit);
+            border.Draw(context);
         });
 
         this.verticalBorders.forEach(border => {
-            border.Draw(ctx, widthUnit, heightUnit);
+            border.Draw(context);
         });
 
-        this.marble.Draw(ctx, widthUnit, heightUnit);
+        this.marble.Draw(context);
     }
 }

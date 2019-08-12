@@ -1,4 +1,5 @@
 import { Maze } from "./Maze/Maze";
+import { Context } from "./Utils/Context";
 
 window.addEventListener('load', initMaze);
 
@@ -12,9 +13,10 @@ function initMaze()
     canvas.height = canvas.clientHeight;
     window.addEventListener('resize', () => resize(canvas));
     const ctx = canvas.getContext('2d');
+    const context = new Context(ctx, MAZE_WIDTH, MAZE_HEIGHT);
     const maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT, 1000);
 
-    Cycle(maze, ctx);
+    Cycle(maze, context);
 }
 
 function resize(canvas: HTMLCanvasElement)
@@ -23,15 +25,12 @@ function resize(canvas: HTMLCanvasElement)
     canvas.height = canvas.clientHeight;
 }
 
-function Cycle(maze : Maze, ctx : CanvasRenderingContext2D)
+function Cycle(maze : Maze, context : Context)
 {
-    const { width, height }  = ctx.canvas;
-
-    const widthUnit = width / MAZE_WIDTH;
-    const heightUnit = height / MAZE_HEIGHT;
+    const {ctx, width, height} = context.getContextDTO();
     
     ctx.clearRect(0, 0, width, height);
-    maze.Update(ctx, widthUnit, heightUnit);
-    maze.Draw(ctx, widthUnit, heightUnit);
-    requestAnimationFrame(() => Cycle(maze, ctx))
+    maze.Update(context);
+    maze.Draw(context);
+    requestAnimationFrame(() => Cycle(maze, context))
 }

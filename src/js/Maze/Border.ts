@@ -1,6 +1,8 @@
 import { Orientation } from '../Enum/OrientationEnum';
 import { Point } from '../Utils/Point';
 import { IDrawable } from '../Interface/IDrawable';
+import { Surroundings } from '../Utils/Surroundings';
+import { Context } from '../Utils/Context';
 
 export class Border implements IDrawable
 {
@@ -9,6 +11,7 @@ export class Border implements IDrawable
     orientation : Orientation;
     isWall : boolean;
     isActive : boolean = true;
+    surroundingBorders : Surroundings<Border>;
 
     constructor(
         position : Point,
@@ -21,13 +24,10 @@ export class Border implements IDrawable
     }
 
 
-    public Draw(
-        ctx : CanvasRenderingContext2D,
-        widthUnit : number,
-        heightUnit : number
-    ) {
-        let start = this.getStartPoint(widthUnit, heightUnit);
-        let end = this.getEndPoint(widthUnit, heightUnit);
+    public Draw(context : Context) {
+        const {ctx} = context.getContextDTO();
+        const start = this.getStartPoint(context);
+        const end = this.getEndPoint(context);
 
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
@@ -38,16 +38,24 @@ export class Border implements IDrawable
     }
 
 
-    public getStartPoint(widthUnit : number, heightUnit : number) : Point
+    public getStartPoint(context : Context = null) : Point
     {
-        let {x, y} = this.position;
+        if (context == null) {
+            context = Context.getInstance();
+        }
+        const {widthUnit, heightUnit} = context.getContextDTO();
+        const {x, y} = this.position;
         return new Point(x * widthUnit, y * heightUnit);
     }
 
 
-    public getEndPoint(widthUnit : number, heightUnit : number) : Point
+    public getEndPoint(context : Context = null) : Point
     {
-        let {x, y} = this.position;
+        if (context == null) {
+            context = Context.getInstance();
+        }
+        const {widthUnit, heightUnit} = context.getContextDTO();
+        const {x, y} = this.position;
         if (this.orientation == Orientation.Horizontal) {
             return new Point((x + 1) * widthUnit, y * heightUnit);
         }

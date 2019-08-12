@@ -1,4 +1,6 @@
+import { Context } from "../Utils/Context";
+
 export interface IUpdatable
 {
-    Update(ctx : CanvasRenderingContext2D, widthUnit : number, heightUnit : number) : void;
+    Update(context : Context) : void;
 }
