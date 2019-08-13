@@ -222,8 +222,7 @@ export class Marble implements IDrawable, IUpdatable
 
     private onCollideOnPoint(point : Point, radius : number) : void
     {
-        const incidenceAngle = this.acceleration.getAngle(new Point(0, 0));
-        
+        const incidenceAngle = this.velocity.getAngle(new Point(0, 0));
         const wallNormalAngle = point.getAngle(this.pixelPosition);
         const differenceAngle = wallNormalAngle - incidenceAngle;
         const reflectionAngle = incidenceAngle + 2 * differenceAngle;
@@ -241,7 +240,9 @@ export class Marble implements IDrawable, IUpdatable
              && this.pixelPosition.y <= (cell.position.y + 1) * heightUnit
              && this.pixelPosition.y >= cell.position.y * heightUnit
              ) {
+                 this.currentCell.isActive = false;
                  this.currentCell = cell;
+                 this.currentCell.isActive = true;
             }
         })
     }
@@ -257,8 +258,6 @@ export class Marble implements IDrawable, IUpdatable
         // const y = Math.sin(pitch) * 0.2;
 
         let { x, y } = this.mouse.getValue();
-
-        
 
         x = (x - this.pixelPosition.x) / 600;
         y = (y - this.pixelPosition.y) / 600;

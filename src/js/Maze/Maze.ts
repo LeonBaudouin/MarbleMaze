@@ -93,16 +93,12 @@ export class Maze implements IDrawable, IUpdatable
         this.horizontalBorders.forEach((border, i) => {
             const surroundingBorders = new Surroundings<Border>();
             // Extrémité gauche
-            const leftIndex = i - this.height + 1;
-            if (leftIndex >= 0) {
-                surroundingBorders.set(this.horizontalBorders[leftIndex], Direction.Left);
-            }
+            const leftBorder = this.horizontalBorders.filter(otherBorder => border.isNextToBorder(otherBorder, Direction.Left))[0];
+            surroundingBorders.set(leftBorder, Direction.Left);
             
             // Extrémité droite
-            const rightIndex = i + this.height + 1;
-            if (rightIndex < this.horizontalBorders.length) {
-                surroundingBorders.set(this.horizontalBorders[rightIndex], Direction.Right);
-            }
+            const rightBorder = this.horizontalBorders.filter(otherBorder => border.isNextToBorder(otherBorder, Direction.Right))[0];
+            surroundingBorders.set(rightBorder, Direction.Right);
 
             border.surroundingBorders = surroundingBorders;
         });
@@ -110,14 +106,12 @@ export class Maze implements IDrawable, IUpdatable
         this.verticalBorders.forEach((border, i) => {
             const surroundingBorders = new Surroundings<Border>();
             // Extrémité haute
-            if (i % this.height != 0) {
-                surroundingBorders.set(this.verticalBorders[i - 1], Direction.Up);
-            }
+            const upBorder = this.verticalBorders.filter(otherBorder => border.isNextToBorder(otherBorder, Direction.Up))[0];
+            surroundingBorders.set(upBorder, Direction.Up);
             
             // Extrémité basse
-            if (i % this.height != this.height - 1) {
-                surroundingBorders.set(this.verticalBorders[i + 1], Direction.Down);
-            }
+            const downBorder = this.verticalBorders.filter(otherBorder => border.isNextToBorder(otherBorder, Direction.Down))[0];
+            surroundingBorders.set(downBorder, Direction.Down);
 
             border.surroundingBorders = surroundingBorders;
         });
