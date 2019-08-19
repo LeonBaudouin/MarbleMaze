@@ -99,25 +99,22 @@ export class Marble implements IDrawable, IUpdatable
             }
         });
 
-        let collisionAngle = null;
+        this.collisionAngle = null;
 
         for (const border of horizontalBorders.filter((value, index, self) => self.indexOf(value) === index )) {
             const collided = this.CollisionBorder(border, widthUnit, heightUnit);
             if (collided != null) {
-                collisionAngle = collided;
-                break;
+                this.collisionAngle = collided;
             }
         }
         
         for (const border of verticalBorders.filter((value, index, self) => self.indexOf(value) === index )) {
             const collided = this.CollisionBorder(border, widthUnit, heightUnit);
             if (collided != null) {
-                collisionAngle = collided
+                this.collisionAngle = collided
                 break;
             }
         }
-
-        this.collisionAngle = collisionAngle;
     }
 
     private CollisionBorder(border : Border, widthUnit : number, heightUnit : number) : number
@@ -126,7 +123,6 @@ export class Marble implements IDrawable, IUpdatable
         const radius = this.size * smallestUnit / 2;
 
         const {x: vx, y: vy} = this.velocity;
-        const { x: ax, y: ay } = this.acceleration;
 
         const startPoint = border.getStartPoint();
         const endPoint = border.getEndPoint();
@@ -157,6 +153,7 @@ export class Marble implements IDrawable, IUpdatable
                 const rightBorder = border.surroundingBorders.get(Direction.Right);
                 const angle = endPoint.getAngle(this.pixelPosition);
                 if (angle > - Math.PI / 2 && angle < Math.PI / 2
+                 && (this.collisionAngle == null || Math.abs((this.collisionAngle - (angle + Math.PI)) % Math.PI * 2) > 0.0001)
                  && (rightBorder == null || !rightBorder.isActive)) {
                     this.onCollideOnPoint(endPoint, radius);
                     return angle + Math.PI;
@@ -167,6 +164,7 @@ export class Marble implements IDrawable, IUpdatable
                 const leftBorder = border.surroundingBorders.get(Direction.Left);
                 const angle = startPoint.getAngle(this.pixelPosition);
                 if (((angle < - Math.PI / 2 && angle > - Math.PI) || (angle < Math.PI && angle > Math.PI / 2))
+                 && (this.collisionAngle == null || Math.abs((this.collisionAngle - (angle + Math.PI)) % Math.PI * 2) > 0.0001)
                  && (leftBorder == null || !leftBorder.isActive)) {
                     this.onCollideOnPoint(startPoint, radius);
                     return angle + Math.PI;
@@ -200,6 +198,7 @@ export class Marble implements IDrawable, IUpdatable
                 const downBorder = border.surroundingBorders.get(Direction.Down);
                 const angle = endPoint.getAngle(this.pixelPosition);
                 if (angle > 0 && angle < Math.PI
+                 && (this.collisionAngle == null || Math.abs((this.collisionAngle - (angle + Math.PI)) % Math.PI * 2) > 0.0001)
                  && (downBorder == null || !downBorder.isActive)) {
                     this.onCollideOnPoint(endPoint, radius);
                     return angle + Math.PI;
@@ -210,6 +209,7 @@ export class Marble implements IDrawable, IUpdatable
                 const upBorder = border.surroundingBorders.get(Direction.Up);
                 const angle = startPoint.getAngle(this.pixelPosition);
                 if (angle < 0 && angle > - Math.PI
+                 && (this.collisionAngle == null || Math.abs((this.collisionAngle - (angle + Math.PI)) % Math.PI * 2) > 0.0001)
                  && (upBorder == null || !upBorder.isActive)) {
                     this.onCollideOnPoint(startPoint, radius);
                     return angle + Math.PI;
@@ -228,7 +228,13 @@ export class Marble implements IDrawable, IUpdatable
         const reflectionAngle = incidenceAngle + 2 * differenceAngle;
 
         this.pixelPosition = point.add(Point.CreateFromPolar(wallNormalAngle, radius));
-        this.velocity = Point.CreateFromPolar(reflectionAngle, this.velocity.getMagnitude() / 2);
+
+        const diffAngle = wallNormalAngle - incidenceAngle;
+        const velocityMagnitude = this.velocity.getMagnitude();
+        const normalVelocityMagnitude = velocityMagnitude * Math.cos(diffAngle);
+        const newMagnitude = normalVelocityMagnitude < 0.3 ? velocityMagnitude : velocityMagnitude / 2;
+
+        this.velocity = Point.CreateFromPolar(reflectionAngle, newMagnitude);
     }
 
     private ChangeCurrentCell(widthUnit : number, heightUnit : number) : void
@@ -240,27 +246,20 @@ export class Marble implements IDrawable, IUpdatable
              && this.pixelPosition.y <= (cell.position.y + 1) * heightUnit
              && this.pixelPosition.y >= cell.position.y * heightUnit
              ) {
-                 this.currentCell.isActive = false;
                  this.currentCell = cell;
-                 this.currentCell.isActive = true;
             }
         })
     }
 
     private ProcessInput() : void
     {
-        // let { beta, gamma } = this.listener.getValue();
+        let { beta, gamma } = this.listener.getValue();
         
-        // const pitch = Math.PI * beta / 180;
-        // const roll = Math.PI * gamma / 180;
+        const pitch = Math.PI * beta / 180;
+        const roll = Math.PI * gamma / 180;
 
-        // const x = Math.cos(pitch) * Math.sin(roll) * 0.2;
-        // const y = Math.sin(pitch) * 0.2;
-
-        let { x, y } = this.mouse.getValue();
-
-        x = (x - this.pixelPosition.x) / 600;
-        y = (y - this.pixelPosition.y) / 600;
+        const x = Math.cos(pitch) * Math.sin(roll) * 0.2;
+        const y = Math.sin(pitch) * 0.2;
 
         this.acceleration = new Point(x, y);
     }
@@ -274,17 +273,5 @@ export class Marble implements IDrawable, IUpdatable
         ctx.arc(x, y, this.size * smallestUnit / 2, 0, 2 * Math.PI);
         ctx.fillStyle = 'blue';
         ctx.fill();
-
-        const center = new Point(width/2, height/2);
-        ctx.beginPath();
-        ctx.arc(center.x, center.y, 200, 0, 2 * Math.PI);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(center.x, center.y, 1, 0, 2 * Math.PI);
-        ctx.fill();
-
     }
 }
-
-const p = document.querySelector('p');
