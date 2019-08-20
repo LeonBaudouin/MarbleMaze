@@ -135,6 +135,10 @@ export class Maze implements IDrawable, IUpdatable
     
     public Draw(context : Context) : void
     {
+        const ctx = context.getCtx();
+        ctx.fillStyle = "#EFC98F";
+        ctx.fillRect(0, 0, context.getWidth(), context.getHeight());
+
         this.cells.forEach(cell => {
             cell.Draw(context);
         });

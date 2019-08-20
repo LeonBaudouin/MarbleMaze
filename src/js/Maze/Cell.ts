@@ -30,8 +30,22 @@ export class Cell implements IDrawable {
     {
         const {ctx, widthUnit, heightUnit} = context.getContextDTO();
         const {x, y} = this.position;
-        ctx.fillStyle = this.isStart ? 'green' : this.isEnd ? 'red' : 'transparent';
+        ctx.fillStyle = this.getColor();
         ctx.fillRect(x * widthUnit, y * heightUnit, widthUnit, heightUnit);
+    }
+
+    public getColor() : string
+    {
+        if (this.isStart) {
+            return '#EBB666';
+        }
+
+        if (this.isEnd)
+        {
+            return '#8F6B47';
+        }
+
+        return 'transparent';
     }
 
 

@@ -42,8 +42,8 @@ export class Marble implements IDrawable, IUpdatable
         this.ProcessInput();
         this.UpdateVelocity();
         this.UpdatePosition();
-        this.Collision(widthUnit, heightUnit);
-        this.ChangeCurrentCell(widthUnit, heightUnit);
+        this.Collision();
+        this.ChangeCurrentCell(context);
     }
 
     private UpdateVelocity() : void
@@ -68,7 +68,7 @@ export class Marble implements IDrawable, IUpdatable
         this.pixelPosition = this.pixelPosition.add(this.velocity);
     }
 
-    private Collision(widthUnit : number, heightUnit : number) : void
+    private Collision() : void
     {
         const {surroundingBorders, surroundingCells} = this.currentCell;
 
@@ -102,14 +102,14 @@ export class Marble implements IDrawable, IUpdatable
         this.collisionAngle = null;
 
         for (const border of horizontalBorders.filter((value, index, self) => self.indexOf(value) === index )) {
-            const collided = this.CollisionBorder(border, widthUnit, heightUnit);
+            const collided = this.CollisionBorder(border);
             if (collided != null) {
                 this.collisionAngle = collided;
             }
         }
         
         for (const border of verticalBorders.filter((value, index, self) => self.indexOf(value) === index )) {
-            const collided = this.CollisionBorder(border, widthUnit, heightUnit);
+            const collided = this.CollisionBorder(border);
             if (collided != null) {
                 this.collisionAngle = collided
                 break;
@@ -117,12 +117,13 @@ export class Marble implements IDrawable, IUpdatable
         }
     }
 
-    private CollisionBorder(border : Border, widthUnit : number, heightUnit : number) : number
+    private CollisionBorder(border : Border) : number
     {
+        const context = Context.getInstance();
+        const heightUnit = context.getHeightUnit(); 
+        const widthUnit = context.getWidthUnit(); 
         const smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
         const radius = this.size * smallestUnit / 2;
-
-        const {x: vx, y: vy} = this.velocity;
 
         const startPoint = border.getStartPoint();
         const endPoint = border.getEndPoint();
@@ -136,7 +137,7 @@ export class Marble implements IDrawable, IUpdatable
                 if (this.pixelPosition.y <= startPoint.y
                  && this.pixelPosition.y + radius >= startPoint.y) {
                     this.pixelPosition.y = startPoint.y - radius;
-                    this.velocity.y = - vy * 0.5;
+                    this.velocity.y *= -0.5;
                     return Math.PI / 2;
                 }
 
@@ -144,7 +145,7 @@ export class Marble implements IDrawable, IUpdatable
                 if (this.pixelPosition.y >= startPoint.y
                  && this.pixelPosition.y - radius <= startPoint.y ) {
                     this.pixelPosition.y = startPoint.y + radius;
-                    this.velocity.y = - vy * 0.5;
+                    this.velocity.y *= -0.5;
                     return - Math.PI / 2;
                 }
             }
@@ -181,7 +182,7 @@ export class Marble implements IDrawable, IUpdatable
                 if (this.pixelPosition.x <= startPoint.x
                  && this.pixelPosition.x + radius >= startPoint.x) {
                     this.pixelPosition.x = startPoint.x - radius;
-                    this.velocity.x = - vx * 0.5;
+                    this.velocity.x *= - 0.5;
                     return 0;
                 }
     
@@ -189,7 +190,7 @@ export class Marble implements IDrawable, IUpdatable
                 if (this.pixelPosition.x >= startPoint.x
                  && this.pixelPosition.x - radius <= startPoint.x ) {
                     this.pixelPosition.x = startPoint.x + radius;
-                    this.velocity.x = - vx * 0.5;
+                    this.velocity.x *= -0.5;
                     return Math.PI;
                 }
             }
@@ -237,8 +238,10 @@ export class Marble implements IDrawable, IUpdatable
         this.velocity = Point.CreateFromPolar(reflectionAngle, newMagnitude);
     }
 
-    private ChangeCurrentCell(widthUnit : number, heightUnit : number) : void
+    private ChangeCurrentCell(context : Context) : void
     {
+        const widthUnit = context.getWidthUnit();
+        const heightUnit = context.getHeightUnit();
         this.currentCell.surroundingCells.forEach(cell => {
             if (cell != null
              && this.pixelPosition.x <= (cell.position.x + 1) * widthUnit
@@ -269,9 +272,14 @@ export class Marble implements IDrawable, IUpdatable
         const {ctx, widthUnit, heightUnit, width, height} = context.getContextDTO();
         const {x, y} = this.pixelPosition;
         const smallestUnit = widthUnit > heightUnit ? heightUnit : widthUnit;
+        const radius = this.size * smallestUnit / 2;
+
+        const gradient = ctx.createRadialGradient(x, y + radius, radius / 8, x, y, radius * 1.5);
+        gradient.addColorStop(0, '#6D481B');
+        gradient.addColorStop(0.9, '#8F6B47');
         ctx.beginPath();
-        ctx.arc(x, y, this.size * smallestUnit / 2, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = gradient;
         ctx.fill();
     }
 }

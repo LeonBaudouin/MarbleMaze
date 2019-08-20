@@ -26,6 +26,10 @@ export class Border implements IDrawable
 
 
     public Draw(context : Context) {
+        if (!this.isActive) {
+            return;
+        }
+
         const {ctx} = context.getContextDTO();
         const start = this.getStartPoint(context);
         const end = this.getEndPoint(context);
@@ -33,8 +37,8 @@ export class Border implements IDrawable
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = this.isWall ? 'red' : this.isActive ? 'black' : 'transparent';
+        ctx.lineWidth = this.isWall ? 4 : 2;
+        ctx.strokeStyle = '#6D481B';
         ctx.stroke();
     }
 
